@@ -1,0 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Lato:wght@300;400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 30 25% 97%;
+    --foreground: 25 15% 15%;
+
+    --card: 30 20% 95%;
+    --card-foreground: 25 15% 15%;
+
+    --popover: 30 25% 97%;
+    --popover-foreground: 25 15% 15%;
+
+    --primary: 145 20% 42%;
+    --primary-foreground: 30 25% 97%;
+
+    --secondary: 30 20% 90%;
+    --secondary-foreground: 25 15% 20%;
+
+    --muted: 30 15% 92%;
+    --muted-foreground: 25 10% 45%;
+
+    --accent: 350 25% 65%;
+    --accent-foreground: 30 25% 97%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 30 15% 85%;
+    --input: 30 15% 85%;
+    --ring: 145 20% 42%;
+
+    --radius: 0.5rem;
+
+    --sage: 145 20% 42%;
+    --sage-light: 145 15% 88%;
+    --dusty-rose: 350 25% 65%;
+    --dusty-rose-light: 350 20% 92%;
+    --terracotta: 15 45% 55%;
+    --terracotta-light: 15 35% 90%;
+    --cream: 30 25% 97%;
+    --linen: 30 20% 90%;
+    --warm-brown: 25 15% 15%;
+
+    --font-display: 'Playfair Display', serif;
+    --font-body: 'Lato', sans-serif;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
+  .font-body {
+    font-family: var(--font-body);
+  }
+}
