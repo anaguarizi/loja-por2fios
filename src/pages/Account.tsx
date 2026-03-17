@@ -26,12 +26,6 @@ export default function Account() {
           <div className="p-6 rounded-xl bg-card border border-border">
             <p className="text-sm text-muted-foreground">Acessos</p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <Link
-                to="/checkout"
-                className="px-4 py-2 rounded-lg border border-border hover:bg-muted transition-colors text-sm font-medium"
-              >
-                Checkout
-              </Link>
               {isArtisan && (
                 <Link
                   to="/artesa/encomendas"

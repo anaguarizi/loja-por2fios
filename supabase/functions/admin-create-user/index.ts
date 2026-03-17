@@ -35,19 +35,24 @@ serve(async (req) => {
   if (!supabaseUrl || !anonKey || !serviceRoleKey) return json({ error: "missing_env" }, { status: 500 });
 
   try {
+    // Cliente com usuário logado (para verificar se é admin)
     const caller = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
       auth: { persistSession: false },
     });
+
     const {
       data: { user: callerUser },
     } = await caller.auth.getUser();
+
     if (!callerUser) return json({ error: "unauthorized" }, { status: 401 });
 
+    // Verifica se é admin
     const { data: isAdmin, error: roleErr } = await caller.rpc("has_role", {
       _role: "admin",
       _user_id: callerUser.id,
     });
+
     if (roleErr || !isAdmin) return json({ error: "forbidden" }, { status: 403 });
 
     const body = (await req.json()) as Body;
@@ -60,40 +65,36 @@ serve(async (req) => {
       return json({ error: "invalid_payload" }, { status: 400 });
     }
 
+    // Cliente admin (service role)
     const admin = createClient(supabaseUrl, serviceRoleKey, {
       auth: { persistSession: false },
     });
 
+    // Cria usuário
     const { data: created, error: createErr } = await admin.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
       user_metadata: { full_name },
     });
+
     if (createErr || !created?.user) {
       return json({ error: "create_user_failed", details: createErr?.message }, { status: 400 });
     }
 
     const newUserId = created.user.id;
 
-    const { error: profileErr } = await admin.from("profiles").upsert(
-      {
-        user_id: newUserId,
-        full_name,
-      },
-      { onConflict: "user_id" },
-    );
-    if (profileErr) return json({ error: "profile_failed" }, { status: 500 });
-
+    // Inserir role manualmente
     const { error: roleInsertErr } = await admin.from("user_roles").insert({
       user_id: newUserId,
       role,
     });
+
     if (roleInsertErr) return json({ error: "role_failed" }, { status: 500 });
 
     return json({ ok: true, user_id: newUserId });
-  } catch {
-    return json({ error: "internal_error" }, { status: 500 });
+
+  } catch (err) {
+    return json({ error: "internal_error", details: String(err) }, { status: 500 });
   }
 });
-

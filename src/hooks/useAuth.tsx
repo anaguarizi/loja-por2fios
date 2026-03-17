@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        setTimeout(() => checkRoles(session.user.id), 0);
+        checkRoles(session.user.id);
       } else {
         setRoles([]);
         setIsAdmin(false);
@@ -41,12 +41,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data }) => {
+      const session = data.session;
       setSession(session);
       setUser(session?.user ?? null);
+
       if (session?.user) {
         checkRoles(session.user.id);
       }
+
       setLoading(false);
     });
 
@@ -54,11 +57,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const checkRoles = async (userId: string) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("user_roles")
       .select("role")
       .eq("user_id", userId);
+
+    if (error) {
+      console.error("Erro ao buscar roles:", error);
+      return;
+    }
+
     const nextRoles = (data || []).map((r) => r.role) as Array<"admin" | "artisan" | "buyer">;
+
     setRoles(nextRoles);
     setIsAdmin(nextRoles.includes("admin"));
     setIsArtisan(nextRoles.includes("artisan"));

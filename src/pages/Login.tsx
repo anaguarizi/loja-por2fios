@@ -18,20 +18,30 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (user) navigate("/minha-conta", { replace: true });
-  }, [user, navigate]);
+    if (user) {
+      navigate(from, { replace: true });
+    }
+  }, [user, navigate, from]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
     try {
       const { error } = await signIn(email.trim(), password);
+
       if (error) {
-        toast.error("Não foi possível entrar. Verifique email/senha.");
+        toast.error("Email ou senha inválidos.");
         return;
       }
-      toast.success("Bem-vinda!");
+
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      toast.success("Login realizado com sucesso!");
+
       navigate(from, { replace: true });
+    } catch {
+      toast.error("Erro inesperado ao entrar.");
     } finally {
       setLoading(false);
     }

@@ -15,7 +15,9 @@ export default function ProtectedRoute({
   const { user, loading, isAdmin, isArtisan, isBuyer } = useAuth();
   const location = useLocation();
 
-  if (loading) return null;
+  if (loading) {
+    return <div className="p-4 text-center">Carregando...</div>;
+  }
 
   if (requireAuth && !user) {
     return <Navigate to="/login" replace state={{ from: location }} />;
@@ -23,10 +25,13 @@ export default function ProtectedRoute({
 
   if (requireRole) {
     const required = Array.isArray(requireRole) ? requireRole : [requireRole];
-    const hasRole =
-      (required.includes("admin") && isAdmin) ||
-      (required.includes("artisan") && isArtisan) ||
-      (required.includes("buyer") && isBuyer);
+    const userRoles = {
+      admin: isAdmin,
+      artisan: isArtisan,
+      buyer: isBuyer,
+    };
+
+    const hasRole = required.some((role) => userRoles[role]);
 
     if (!hasRole) return <Navigate to="/" replace />;
   }
