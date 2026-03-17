@@ -1,15 +1,17 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import type { User, Session } from "@supabase/supabase-js";
+import type { AuthError, Session, User } from "@supabase/supabase-js";
 
 type AuthContextType = {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  roles: Array<"admin" | "artisan" | "buyer">;
   isAdmin: boolean;
   isArtisan: boolean;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  isBuyer: boolean;
+  signUp: (email: string, password: string, fullName: string) => Promise<{ error: AuthError | null }>;
+  signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
 };
 
@@ -19,8 +21,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [roles, setRoles] = useState<Array<"admin" | "artisan" | "buyer">>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isArtisan, setIsArtisan] = useState(false);
+  const [isBuyer, setIsBuyer] = useState(false);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -29,8 +33,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (session?.user) {
         setTimeout(() => checkRoles(session.user.id), 0);
       } else {
+        setRoles([]);
         setIsAdmin(false);
         setIsArtisan(false);
+        setIsBuyer(false);
       }
       setLoading(false);
     });
@@ -52,9 +58,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .from("user_roles")
       .select("role")
       .eq("user_id", userId);
-    const roles = (data || []).map((r) => r.role);
-    setIsAdmin(roles.includes("admin"));
-    setIsArtisan(roles.includes("artisan"));
+    const nextRoles = (data || []).map((r) => r.role) as Array<"admin" | "artisan" | "buyer">;
+    setRoles(nextRoles);
+    setIsAdmin(nextRoles.includes("admin"));
+    setIsArtisan(nextRoles.includes("artisan"));
+    setIsBuyer(nextRoles.includes("buyer"));
   };
 
   const signUp = async (email: string, password: string, fullName: string) => {
@@ -79,7 +87,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isAdmin, isArtisan, signUp, signIn, signOut }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        loading,
+        roles,
+        isAdmin,
+        isArtisan,
+        isBuyer,
+        signUp,
+        signIn,
+        signOut,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

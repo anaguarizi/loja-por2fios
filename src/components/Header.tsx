@@ -1,96 +1,114 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Menu, X, ShoppingBag, User, LogOut, Shield, Scissors } from "lucide-react";
-import { useCart } from "@/contexts/CartContext";
-import { useAuth } from "@/hooks/useAuth";
+import { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { ShoppingBag, Menu, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useCart } from '@/contexts/CartContext';
+import { useAuth } from '@/hooks/useAuth';
+
+const navLinks = [
+  { to: '/', label: 'Início' },
+  { to: '/produtos', label: 'Produtos' },
+  { to: '/sobre', label: 'Sobre' },
+  { to: '/encomendas', label: 'Encomendas' },
+  { to: '/contato', label: 'Contato' },
+];
 
 const Header = () => {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const { items } = useCart();
-  const { user, isAdmin, isArtisan, signOut } = useAuth();
-  const navigate = useNavigate();
-  const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
-
-  const scrollTo = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-    setMenuOpen(false);
-  };
-
-  const handleAuth = () => {
-    if (user) {
-      signOut();
-    } else {
-      navigate("/auth");
-    }
-    setMenuOpen(false);
-  };
+  const { totalItems, setIsCartOpen } = useCart();
+  const { user } = useAuth();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const location = useLocation();
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
-      <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-        <button onClick={() => scrollTo("hero")} className="font-display text-2xl font-semibold tracking-wide text-foreground">
+    <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+      <div className="container mx-auto px-4 flex items-center justify-between h-16 md:h-20">
+        <Link to="/" className="font-display text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
           Por Dois Fios
-        </button>
+        </Link>
 
-        <nav className="hidden md:flex items-center gap-8 font-body text-sm tracking-wide">
-          <button onClick={() => scrollTo("catalogo")} className="text-muted-foreground hover:text-foreground transition-colors">Catálogo</button>
-          <button onClick={() => scrollTo("encomendas")} className="text-muted-foreground hover:text-foreground transition-colors">Encomendas</button>
-          <button onClick={() => scrollTo("como-funciona")} className="text-muted-foreground hover:text-foreground transition-colors">Como Funciona</button>
-          <button onClick={() => scrollTo("contato")} className="text-muted-foreground hover:text-foreground transition-colors">Contato</button>
-          <button onClick={() => scrollTo("carrinho")} className="relative text-foreground hover:text-primary transition-colors">
-            <ShoppingBag className="w-5 h-5" />
-            {totalItems > 0 && (
-              <span className="absolute -top-2 -right-2 bg-accent text-accent-foreground text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
-                {totalItems}
-              </span>
-            )}
-          </button>
-          {isArtisan && (
-            <button onClick={() => navigate("/artesa")} className="text-accent hover:text-foreground transition-colors" title="Painel Artesã">
-              <Scissors className="w-5 h-5" />
-            </button>
-          )}
-          {isAdmin && (
-            <button onClick={() => navigate("/admin")} className="text-primary hover:text-foreground transition-colors" title="Painel Admin">
-              <Shield className="w-5 h-5" />
-            </button>
-          )}
-          <button onClick={handleAuth} className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
-            {user ? <LogOut className="w-4 h-4" /> : <User className="w-4 h-4" />}
-            <span className="text-xs">{user ? "Sair" : "Entrar"}</span>
-          </button>
+        {/* Desktop nav */}
+        <nav className="hidden md:flex items-center gap-8">
+          {navLinks.map(link => (
+            <Link
+              key={link.to}
+              to={link.to}
+              className={`text-sm font-medium transition-colors hover:text-primary ${
+                location.pathname === link.to ? 'text-primary' : 'text-muted-foreground'
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
         </nav>
 
-        <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden text-foreground">
-          {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
-      </div>
-
-      {menuOpen && (
-        <div className="md:hidden bg-background border-b border-border px-6 py-4 space-y-3 font-body text-sm">
-          <button onClick={() => scrollTo("catalogo")} className="block w-full text-left text-muted-foreground hover:text-foreground">Catálogo</button>
-          <button onClick={() => scrollTo("encomendas")} className="block w-full text-left text-muted-foreground hover:text-foreground">Encomendas</button>
-          <button onClick={() => scrollTo("como-funciona")} className="block w-full text-left text-muted-foreground hover:text-foreground">Como Funciona</button>
-          <button onClick={() => scrollTo("contato")} className="block w-full text-left text-muted-foreground hover:text-foreground">Contato</button>
-          <button onClick={() => scrollTo("carrinho")} className="flex items-center gap-2 text-foreground">
-            <ShoppingBag className="w-5 h-5" /> Carrinho {totalItems > 0 && `(${totalItems})`}
+        <div className="flex items-center gap-4">
+          <Link
+            to={user ? "/minha-conta" : "/login"}
+            className="hidden sm:inline-flex text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+          >
+            {user ? "Minha conta" : "Entrar"}
+          </Link>
+          <button
+            onClick={() => setIsCartOpen(true)}
+            className="relative p-2 text-foreground hover:text-primary transition-colors"
+            aria-label="Carrinho"
+          >
+            <ShoppingBag className="w-5 h-5" />
+            {totalItems > 0 && (
+              <motion.span
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-xs w-5 h-5 rounded-full flex items-center justify-center font-semibold"
+              >
+                {totalItems}
+              </motion.span>
+            )}
           </button>
-          {isArtisan && (
-            <button onClick={() => { navigate("/artesa"); setMenuOpen(false); }} className="flex items-center gap-2 text-accent">
-              <Scissors className="w-5 h-5" /> Painel Artesã
-            </button>
-          )}
-          {isAdmin && (
-            <button onClick={() => { navigate("/admin"); setMenuOpen(false); }} className="flex items-center gap-2 text-primary">
-              <Shield className="w-5 h-5" /> Painel Admin
-            </button>
-          )}
-          <button onClick={handleAuth} className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
-            {user ? <LogOut className="w-5 h-5" /> : <User className="w-5 h-5" />}
-            {user ? "Sair" : "Entrar / Cadastrar"}
+
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="md:hidden p-2 text-foreground"
+            aria-label="Menu"
+          >
+            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
-      )}
+      </div>
+
+      {/* Mobile nav */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.nav
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="md:hidden overflow-hidden border-t border-border bg-background"
+          >
+            <div className="container mx-auto px-4 py-4 flex flex-col gap-3">
+              <Link
+                to={user ? "/minha-conta" : "/login"}
+                onClick={() => setMobileOpen(false)}
+                className="text-base font-medium py-2 text-muted-foreground hover:text-primary transition-colors"
+              >
+                {user ? "Minha conta" : "Entrar"}
+              </Link>
+              {navLinks.map(link => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  onClick={() => setMobileOpen(false)}
+                  className={`text-base font-medium py-2 transition-colors ${
+                    location.pathname === link.to ? 'text-primary' : 'text-muted-foreground'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </motion.nav>
+        )}
+      </AnimatePresence>
     </header>
   );
 };

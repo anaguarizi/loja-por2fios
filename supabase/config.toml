@@ -1,1 +1,8 @@
-project_id = "tvgxgmqyixrhalvlxjbt"
+[api]
+enabled = true
+
+[db]
+shadow_port = 54320
+
+[functions.verify_jwt]
+enabled = false
